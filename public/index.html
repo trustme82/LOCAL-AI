@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QVAC Local AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .app {
+      width: 90%;
+      max-width: 700px;
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      margin-top: 0;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 15px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      resize: vertical;
+      font-size: 16px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #111;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #888;
+      cursor: not-allowed;
+    }
+
+    .answer {
+      margin-top: 25px;
+      padding: 20px;
+      background: #f0f0f0;
+      border-radius: 10px;
+      min-height: 80px;
+      white-space: pre-wrap;
+    }
+
+    .status {
+      text-align: center;
+      margin-top: 15px;
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app">
+    <h1>QVAC Local AI</h1>
+
+    <p class="subtitle">
+      AI running locally on your computer
+    </p>
+
+    <textarea id="prompt" placeholder="Ask something..."></textarea>
+
+    <button id="askButton" onclick="askAI()">
+      Ask AI
+    </button>
+
+    <div class="status" id="status">
+      Ready
+    </div>
+
+    <div class="answer" id="answer">
+      Your AI response will appear here.
+    </div>
+  </div>
+
+  <script>
+    async function askAI() {
+      const prompt = document.getElementById("prompt").value.trim();
+      const button = document.getElementById("askButton");
+      const status = document.getElementById("status");
+      const answer = document.getElementById("answer");
+
+      if (!prompt) {
+        answer.textContent = "Please enter a question.";
+        return;
+      }
+
+      button.disabled = true;
+      status.textContent = "Thinking...";
+      answer.textContent = "";
+
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ prompt })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Something went wrong.");
+        }
+
+        answer.textContent = data.answer;
+        status.textContent = "Done";
+      } catch (error) {
+        answer.textContent = "Error: " + error.message;
+        status.textContent = "Error";
+      } finally {
+        button.disabled = false;
+      }
+    }
+  </script>
+
+</body>
+</html>
